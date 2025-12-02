@@ -1,0 +1,1084 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HFPA Inspector | High Frequency Product Audit</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+/* HFPA Inspector - Industrial Quality Control Aesthetic */
+
+:root {
+    --bg-primary: #0d1117;
+    --bg-secondary: #161b22;
+    --bg-tertiary: #21262d;
+    --bg-elevated: #30363d;
+    --accent-primary: #58a6ff;
+    --accent-success: #3fb950;
+    --accent-warning: #d29922;
+    --accent-danger: #f85149;
+    --accent-orange: #db6d28;
+    --text-primary: #f0f6fc;
+    --text-secondary: #8b949e;
+    --text-muted: #6e7681;
+    --border-default: #30363d;
+    --border-muted: #21262d;
+    --shadow-sm: 0 1px 2px rgba(0,0,0,0.3);
+    --shadow-md: 0 4px 12px rgba(0,0,0,0.4);
+    --shadow-lg: 0 8px 24px rgba(0,0,0,0.5);
+    --font-sans: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+    --space-xs: 4px;
+    --space-sm: 8px;
+    --space-md: 16px;
+    --space-lg: 24px;
+    --space-xl: 32px;
+    --space-2xl: 48px;
+    --radius-sm: 4px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --radius-xl: 16px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+    font-family: var(--font-sans);
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    line-height: 1.6;
+    min-height: 100vh;
+    overflow-x: hidden;
+}
+
+body::before {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: 
+        radial-gradient(ellipse at 20% 20%, rgba(88, 166, 255, 0.03) 0%, transparent 50%),
+        radial-gradient(ellipse at 80% 80%, rgba(63, 185, 80, 0.03) 0%, transparent 50%),
+        repeating-linear-gradient(0deg, transparent, transparent 50px, rgba(48, 54, 61, 0.3) 50px, rgba(48, 54, 61, 0.3) 51px),
+        repeating-linear-gradient(90deg, transparent, transparent 50px, rgba(48, 54, 61, 0.3) 50px, rgba(48, 54, 61, 0.3) 51px);
+    pointer-events: none;
+    z-index: -1;
+}
+
+.app-container { display: flex; flex-direction: column; min-height: 100vh; }
+
+.app-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-md) var(--space-lg);
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border-default);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.logo { display: flex; align-items: center; gap: var(--space-sm); }
+.logo-icon { font-size: 24px; color: var(--accent-primary); animation: pulse 2s ease-in-out infinite; }
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
+.logo-text { font-size: 20px; font-weight: 700; letter-spacing: 2px; color: var(--text-primary); }
+.version { font-family: var(--font-mono); font-size: 11px; color: var(--text-muted); background: var(--bg-tertiary); padding: 2px 6px; border-radius: var(--radius-sm); }
+
+.header-controls { display: flex; align-items: center; gap: var(--space-md); }
+
+.timer-display {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    padding: var(--space-sm) var(--space-md);
+    background: var(--bg-tertiary);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-default);
+}
+
+.timer-label { font-size: 10px; font-weight: 600; letter-spacing: 1px; color: var(--text-muted); text-transform: uppercase; }
+.timer-value { font-family: var(--font-mono); font-size: 24px; font-weight: 500; color: var(--accent-primary); }
+.timer-display.warning .timer-value { color: var(--accent-warning); }
+.timer-display.danger .timer-value { color: var(--accent-danger); animation: blink 0.5s ease-in-out infinite; }
+@keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+
+.btn {
+    font-family: var(--font-sans);
+    font-size: 14px;
+    font-weight: 600;
+    padding: var(--space-sm) var(--space-md);
+    border: none;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-sm);
+}
+
+.btn-icon {
+    width: 36px; height: 36px; padding: 0;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--bg-tertiary);
+    color: var(--text-secondary);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-md);
+}
+.btn-icon:hover { background: var(--bg-elevated); color: var(--text-primary); }
+
+.btn-primary { background: var(--accent-primary); color: var(--bg-primary); }
+.btn-primary:hover { background: #79b8ff; transform: translateY(-1px); box-shadow: var(--shadow-md); }
+
+.btn-secondary { background: var(--bg-tertiary); color: var(--text-secondary); border: 1px solid var(--border-default); }
+.btn-secondary:hover { background: var(--bg-elevated); color: var(--text-primary); }
+
+.btn-success { background: var(--accent-success); color: var(--bg-primary); }
+.btn-success:hover { background: #56d364; transform: translateY(-1px); box-shadow: var(--shadow-md); }
+
+.main-content { display: flex; flex: 1; }
+
+.sidebar {
+    width: 240px;
+    background: var(--bg-secondary);
+    border-right: 1px solid var(--border-default);
+    padding: var(--space-md);
+    overflow-y: auto;
+    flex-shrink: 0;
+}
+
+.nav-section { margin-bottom: var(--space-lg); }
+.nav-title { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; color: var(--text-muted); text-transform: uppercase; padding: var(--space-sm); margin-bottom: var(--space-xs); }
+
+.nav-item {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    padding: var(--space-sm);
+    background: transparent;
+    border: none;
+    border-radius: var(--radius-md);
+    color: var(--text-secondary);
+    font-family: var(--font-sans);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    text-align: left;
+}
+
+.nav-item:hover { background: var(--bg-tertiary); color: var(--text-primary); }
+.nav-item.active { background: rgba(88, 166, 255, 0.15); color: var(--accent-primary); }
+.nav-item.completed { color: var(--accent-success); }
+.nav-item.has-defects { color: var(--accent-warning); }
+
+.nav-num {
+    width: 24px; height: 24px;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--bg-tertiary);
+    border-radius: 50%;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 600;
+    flex-shrink: 0;
+}
+
+.nav-item.active .nav-num { background: var(--accent-primary); color: var(--bg-primary); }
+.nav-item.completed .nav-num { background: var(--accent-success); color: var(--bg-primary); }
+.nav-label { flex: 1; }
+
+.nav-status { width: 8px; height: 8px; border-radius: 50%; opacity: 0; }
+.nav-item.completed .nav-status { opacity: 1; background: var(--accent-success); }
+.nav-item.has-defects .nav-status { opacity: 1; background: var(--accent-warning); }
+
+.content-area { flex: 1; padding: var(--space-xl); overflow-y: auto; max-width: 900px; }
+
+.step-panel { display: none; animation: fadeIn 0.3s ease; }
+.step-panel.active { display: block; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+.step-header { margin-bottom: var(--space-xl); }
+.step-badge { display: inline-block; font-size: 11px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: var(--accent-primary); background: rgba(88, 166, 255, 0.15); padding: var(--space-xs) var(--space-sm); border-radius: var(--radius-sm); margin-bottom: var(--space-sm); }
+.step-header h1 { font-size: 28px; font-weight: 700; color: var(--text-primary); margin-bottom: var(--space-xs); }
+.step-desc { font-size: 15px; color: var(--text-secondary); }
+
+.form-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: var(--space-md); margin-bottom: var(--space-xl); }
+.form-group { display: flex; flex-direction: column; gap: var(--space-xs); }
+.form-group label { font-size: 12px; font-weight: 600; letter-spacing: 0.5px; color: var(--text-secondary); text-transform: uppercase; }
+.form-group input, .form-group select {
+    font-family: var(--font-sans);
+    font-size: 14px;
+    padding: var(--space-sm) var(--space-md);
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-md);
+    color: var(--text-primary);
+    transition: all 0.15s ease;
+}
+.form-group input:focus, .form-group select:focus { outline: none; border-color: var(--accent-primary); box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.15); }
+.form-group input::placeholder { color: var(--text-muted); }
+.form-group input:read-only { background: var(--bg-secondary); color: var(--text-muted); }
+
+.tools-checklist { background: var(--bg-secondary); border: 1px solid var(--border-default); border-radius: var(--radius-lg); padding: var(--space-lg); margin-bottom: var(--space-xl); }
+.tools-checklist h3 { font-size: 14px; font-weight: 600; color: var(--text-primary); margin-bottom: var(--space-md); }
+.checklist-grid { display: flex; flex-direction: column; gap: var(--space-sm); }
+.check-item { display: flex; align-items: center; gap: var(--space-sm); cursor: pointer; padding: var(--space-sm); border-radius: var(--radius-md); transition: background 0.15s ease; }
+.check-item:hover { background: var(--bg-tertiary); }
+.check-item input { display: none; }
+.checkmark { width: 20px; height: 20px; border: 2px solid var(--border-default); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; transition: all 0.15s ease; flex-shrink: 0; }
+.check-item input:checked + .checkmark { background: var(--accent-success); border-color: var(--accent-success); }
+.check-item input:checked + .checkmark::after { content: '✓'; color: var(--bg-primary); font-size: 12px; font-weight: 700; }
+.check-label { font-size: 14px; color: var(--text-secondary); }
+.check-item input:checked ~ .check-label { color: var(--text-primary); }
+
+.instruction-card { background: var(--bg-secondary); border: 1px solid var(--border-default); border-radius: var(--radius-lg); padding: var(--space-lg); margin-bottom: var(--space-lg); }
+.instruction-card.warning { border-color: var(--accent-warning); background: rgba(210, 153, 34, 0.05); }
+.instruction-header { display: flex; align-items: center; gap: var(--space-sm); margin-bottom: var(--space-md); }
+.instruction-icon { font-size: 24px; }
+.instruction-header h3 { font-size: 16px; font-weight: 600; color: var(--text-primary); }
+.audit-points { padding-left: var(--space-lg); display: flex; flex-direction: column; gap: var(--space-sm); }
+.audit-points li { font-size: 14px; color: var(--text-secondary); line-height: 1.7; }
+.audit-points li strong { color: var(--accent-primary); font-weight: 600; }
+.audit-points li em { color: var(--text-muted); font-style: italic; }
+.audit-points ul { margin-top: var(--space-xs); padding-left: var(--space-md); }
+
+.tolerance-badge { display: inline-block; margin-top: var(--space-md); padding: var(--space-xs) var(--space-sm); background: rgba(88, 166, 255, 0.15); border: 1px solid rgba(88, 166, 255, 0.3); border-radius: var(--radius-sm); font-family: var(--font-mono); font-size: 12px; font-weight: 500; color: var(--accent-primary); }
+.tolerance-badge.critical { background: rgba(248, 81, 73, 0.15); border-color: rgba(248, 81, 73, 0.3); color: var(--accent-danger); }
+
+.defect-recorder { background: var(--bg-secondary); border: 1px solid var(--border-default); border-radius: var(--radius-lg); padding: var(--space-lg); margin-bottom: var(--space-xl); }
+.defect-recorder h3 { font-size: 14px; font-weight: 600; color: var(--text-primary); margin-bottom: var(--space-md); }
+.defect-buttons { display: flex; flex-wrap: wrap; gap: var(--space-sm); }
+
+.defect-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-xs);
+    padding: var(--space-md);
+    min-width: 100px;
+    background: var(--bg-tertiary);
+    border: 2px solid var(--border-default);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+.defect-btn:hover { border-color: var(--accent-warning); background: rgba(210, 153, 34, 0.1); }
+.defect-btn.active { border-color: var(--accent-warning); background: rgba(210, 153, 34, 0.15); }
+.defect-btn.critical:hover, .defect-btn.critical.active { border-color: var(--accent-danger); background: rgba(248, 81, 73, 0.15); }
+.defect-count { font-family: var(--font-mono); font-size: 24px; font-weight: 700; color: var(--text-muted); }
+.defect-btn.active .defect-count { color: var(--accent-warning); }
+.defect-btn.critical.active .defect-count { color: var(--accent-danger); }
+.defect-label { font-size: 11px; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; color: var(--text-secondary); }
+
+.step-actions { display: flex; gap: var(--space-md); padding-top: var(--space-lg); border-top: 1px solid var(--border-default); }
+
+.summary-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-md); margin-bottom: var(--space-xl); }
+.summary-card { background: var(--bg-secondary); border: 1px solid var(--border-default); border-radius: var(--radius-lg); padding: var(--space-lg); text-align: center; }
+.summary-label { font-size: 11px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: var(--text-muted); margin-bottom: var(--space-xs); }
+.summary-value { font-family: var(--font-mono); font-size: 28px; font-weight: 700; color: var(--text-primary); }
+.status-card.pass { border-color: var(--accent-success); background: rgba(63, 185, 80, 0.1); }
+.status-card.pass .summary-value { color: var(--accent-success); }
+.status-card.fail { border-color: var(--accent-danger); background: rgba(248, 81, 73, 0.1); }
+.status-card.fail .summary-value { color: var(--accent-danger); }
+
+.defect-breakdown { background: var(--bg-secondary); border: 1px solid var(--border-default); border-radius: var(--radius-lg); padding: var(--space-lg); margin-bottom: var(--space-xl); }
+.defect-breakdown h3 { font-size: 14px; font-weight: 600; color: var(--text-primary); margin-bottom: var(--space-md); }
+.defect-list { display: flex; flex-direction: column; gap: var(--space-sm); }
+.defect-list-item { display: flex; justify-content: space-between; align-items: center; padding: var(--space-sm) var(--space-md); background: var(--bg-tertiary); border-radius: var(--radius-md); }
+.defect-list-item .defect-name { font-size: 13px; color: var(--text-secondary); }
+.defect-list-item .defect-value { font-family: var(--font-mono); font-size: 14px; font-weight: 600; color: var(--accent-warning); }
+.defect-list-empty { text-align: center; padding: var(--space-lg); color: var(--text-muted); font-size: 14px; }
+
+.notes-section { margin-bottom: var(--space-xl); }
+.notes-section h3 { font-size: 14px; font-weight: 600; color: var(--text-primary); margin-bottom: var(--space-sm); }
+.notes-section textarea { width: 100%; min-height: 120px; font-family: var(--font-sans); font-size: 14px; padding: var(--space-md); background: var(--bg-secondary); border: 1px solid var(--border-default); border-radius: var(--radius-md); color: var(--text-primary); resize: vertical; }
+.notes-section textarea:focus { outline: none; border-color: var(--accent-primary); }
+.notes-section textarea::placeholder { color: var(--text-muted); }
+
+.toast {
+    position: fixed;
+    bottom: var(--space-xl);
+    left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    padding: var(--space-md) var(--space-lg);
+    background: var(--bg-elevated);
+    border: 1px solid var(--accent-warning);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    opacity: 0;
+    transition: all 0.3s ease;
+    z-index: 200;
+}
+.toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+.toast-icon { font-size: 20px; }
+.toast-message { font-size: 14px; font-weight: 500; color: var(--text-primary); }
+
+@media (max-width: 1024px) {
+    .sidebar { width: 200px; }
+    .summary-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 768px) {
+    .main-content { flex-direction: column; }
+    .sidebar { width: 100%; border-right: none; border-bottom: 1px solid var(--border-default); padding: var(--space-sm); }
+    .nav-section { display: flex; flex-wrap: wrap; gap: var(--space-xs); margin-bottom: var(--space-sm); }
+    .nav-title { width: 100%; margin-bottom: 0; }
+    .nav-item { padding: var(--space-xs) var(--space-sm); flex: 0 0 auto; }
+    .nav-label { display: none; }
+    .content-area { padding: var(--space-md); }
+    .form-grid { grid-template-columns: 1fr; }
+    .summary-grid { grid-template-columns: repeat(2, 1fr); }
+    .defect-buttons { flex-direction: column; }
+    .defect-btn { flex-direction: row; justify-content: space-between; min-width: 100%; }
+}
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <header class="app-header">
+            <div class="logo">
+                <span class="logo-icon">◆</span>
+                <span class="logo-text">HFPA</span>
+                <span class="version">v1.31</span>
+            </div>
+            <div class="header-controls">
+                <div class="timer-display" id="timer">
+                    <span class="timer-label">AUDIT TIME</span>
+                    <span class="timer-value">00:00</span>
+                </div>
+                <button class="btn btn-icon" id="helpBtn" title="Help">?</button>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <nav class="sidebar">
+                <div class="nav-section">
+                    <div class="nav-title">SETUP</div>
+                    <button class="nav-item active" data-step="setup">
+                        <span class="nav-num">0</span>
+                        <span class="nav-label">Production Info</span>
+                        <span class="nav-status"></span>
+                    </button>
+                </div>
+                <div class="nav-section">
+                    <div class="nav-title">INSPECTION</div>
+                    <button class="nav-item" data-step="overall"><span class="nav-num">1</span><span class="nav-label">Overall</span><span class="nav-status"></span></button>
+                    <button class="nav-item" data-step="vamp"><span class="nav-num">2</span><span class="nav-label">Vamp</span><span class="nav-status"></span></button>
+                    <button class="nav-item" data-step="heel"><span class="nav-num">3</span><span class="nav-label">Heel</span><span class="nav-status"></span></button>
+                    <button class="nav-item" data-step="heel-to-heel"><span class="nav-num">4</span><span class="nav-label">Heel to Heel</span><span class="nav-status"></span></button>
+                    <button class="nav-item" data-step="toe-to-toe"><span class="nav-num">5</span><span class="nav-label">Toe to Toe</span><span class="nav-status"></span></button>
+                    <button class="nav-item" data-step="medial"><span class="nav-num">6</span><span class="nav-label">Medial</span><span class="nav-status"></span></button>
+                    <button class="nav-item" data-step="bottom"><span class="nav-num">7</span><span class="nav-label">Bottom</span><span class="nav-status"></span></button>
+                    <button class="nav-item" data-step="lateral"><span class="nav-num">8</span><span class="nav-label">Lateral</span><span class="nav-status"></span></button>
+                    <button class="nav-item" data-step="biteline"><span class="nav-num">9</span><span class="nav-label">Biteline</span><span class="nav-status"></span></button>
+                    <button class="nav-item" data-step="shoelace"><span class="nav-num">10</span><span class="nav-label">Shoelace</span><span class="nav-status"></span></button>
+                    <button class="nav-item" data-step="interior"><span class="nav-num">11</span><span class="nav-label">Interior</span><span class="nav-status"></span></button>
+                </div>
+                <div class="nav-section">
+                    <div class="nav-title">COMPLETE</div>
+                    <button class="nav-item" data-step="summary"><span class="nav-num">✓</span><span class="nav-label">Summary</span><span class="nav-status"></span></button>
+                </div>
+            </nav>
+
+            <div class="content-area">
+                <!-- Setup Step -->
+                <section class="step-panel active" id="step-setup">
+                    <div class="step-header">
+                        <h1>Production Information</h1>
+                        <p class="step-desc">Enter the production details before starting the audit</p>
+                    </div>
+                    <div class="form-grid">
+                        <div class="form-group"><label for="factoryCode">Factory Code</label><input type="text" id="factoryCode" placeholder="e.g., C5_JJ"></div>
+                        <div class="form-group"><label for="season">Season</label><input type="text" id="season" placeholder="e.g., SP23"></div>
+                        <div class="form-group"><label for="auditDate">Audit Date</label><input type="date" id="auditDate"></div>
+                        <div class="form-group"><label for="auditId">Audit ID</label><input type="text" id="auditId" placeholder="Auto-generated" readonly></div>
+                        <div class="form-group"><label for="plant">Plant</label><input type="text" id="plant" placeholder="e.g., NOE A"></div>
+                        <div class="form-group"><label for="line">Line</label><input type="number" id="line" placeholder="e.g., 1"></div>
+                        <div class="form-group"><label for="auditor">Auditor Name</label><input type="text" id="auditor" placeholder="Your name"></div>
+                        <div class="form-group"><label for="poNumber">PO Number</label><input type="text" id="poNumber" placeholder="e.g., 450806063010"></div>
+                        <div class="form-group"><label for="model">Model</label><input type="text" id="model" placeholder="e.g., Air Max 90"></div>
+                        <div class="form-group"><label for="styleCode">Style Code</label><input type="text" id="styleCode" placeholder="e.g., CQ8815"></div>
+                        <div class="form-group"><label for="colorCode">Color Code</label><input type="text" id="colorCode" placeholder="e.g., 001"></div>
+                        <div class="form-group"><label for="timeSlot">Time Slot</label>
+                            <select id="timeSlot">
+                                <option value="">Select time slot</option>
+                                <option value="07:30~08:30">07:30~08:30</option>
+                                <option value="08:30~09:30">08:30~09:30</option>
+                                <option value="09:30~10:30">09:30~10:30</option>
+                                <option value="10:30~11:30">10:30~11:30</option>
+                                <option value="12:30~13:30">12:30~13:30</option>
+                                <option value="13:30~14:30">13:30~14:30</option>
+                                <option value="14:30~15:30">14:30~15:30</option>
+                                <option value="15:30~16:30">15:30~16:30</option>
+                            </select>
+                        </div>
+                        <div class="form-group"><label for="prodQty">Production Qty (Daily)</label><input type="number" id="prodQty" placeholder="e.g., 31"></div>
+                        <div class="form-group"><label for="sampleSize">Sample Size</label><input type="number" id="sampleSize" value="31" placeholder="31 prs/hour"></div>
+                    </div>
+                    <div class="tools-checklist">
+                        <h3>Required Tools Checklist</h3>
+                        <div class="checklist-grid">
+                            <label class="check-item"><input type="checkbox" id="tool1"><span class="checkmark"></span><span class="check-label">Audit Table (150×90cm, 1000-1200 lux)</span></label>
+                            <label class="check-item"><input type="checkbox" id="tool2"><span class="checkmark"></span><span class="check-label">Gloves (finger tips intact)</span></label>
+                            <label class="check-item"><input type="checkbox" id="tool3"><span class="checkmark"></span><span class="check-label">Steel Ruler</span></label>
+                            <label class="check-item"><input type="checkbox" id="tool4"><span class="checkmark"></span><span class="check-label">Production Confirmed Sample</span></label>
+                            <label class="check-item"><input type="checkbox" id="tool5"><span class="checkmark"></span><span class="check-label">PFC (if applicable)</span></label>
+                        </div>
+                    </div>
+                    <div class="step-actions">
+                        <button class="btn btn-primary" onclick="startAudit()">Start Audit →</button>
+                    </div>
+                </section>
+
+                <!-- Overall Step -->
+                <section class="step-panel" id="step-overall">
+                    <div class="step-header">
+                        <div class="step-badge">Step 1 of 11</div>
+                        <h1>Overall Inspection</h1>
+                        <p class="step-desc">Pick up the shoes as a pair (together side-by-side)</p>
+                    </div>
+                    <div class="instruction-card">
+                        <div class="instruction-header"><span class="instruction-icon">👁️</span><h3>Audit Points</h3></div>
+                        <ol class="audit-points">
+                            <li>Visual/cosmetics (stain, dirt, scratch, tears, thread ends)</li>
+                            <li>Size & style number & COO matching with C/O label and inner box</li>
+                            <li>Shoe deformation on vamp area</li>
+                            <li>Unique features: zipper, screw in studs - test functionality</li>
+                            <li>Compare against production confirmation shoe</li>
+                        </ol>
+                    </div>
+                    <div class="defect-recorder">
+                        <h3>Record Defects</h3>
+                        <div class="defect-buttons">
+                            <button class="defect-btn" data-defect="contamination" data-step="overall"><span class="defect-count">0</span><span class="defect-label">Contamination</span></button>
+                            <button class="defect-btn" data-defect="cosmetic" data-step="overall"><span class="defect-count">0</span><span class="defect-label">Cosmetic</span></button>
+                            <button class="defect-btn" data-defect="deformation" data-step="overall"><span class="defect-count">0</span><span class="defect-label">Deformation</span></button>
+                            <button class="defect-btn" data-defect="labeling" data-step="overall"><span class="defect-count">0</span><span class="defect-label">Labeling</span></button>
+                        </div>
+                    </div>
+                    <div class="step-actions">
+                        <button class="btn btn-secondary" onclick="prevStep()">← Back</button>
+                        <button class="btn btn-success" onclick="markPass()">Pass ✓</button>
+                        <button class="btn btn-primary" onclick="nextStep()">Next →</button>
+                    </div>
+                </section>
+
+                <!-- Vamp Step -->
+                <section class="step-panel" id="step-vamp">
+                    <div class="step-header">
+                        <div class="step-badge">Step 2 of 11</div>
+                        <h1>Vamp Inspection</h1>
+                        <p class="step-desc">The most noticeable part of the shoe to the consumer</p>
+                    </div>
+                    <div class="instruction-card">
+                        <div class="instruction-header"><span class="instruction-icon">👟</span><h3>Audit Points</h3></div>
+                        <ol class="audit-points">
+                            <li>Component spacing L&R: matched or within <strong>±2mm</strong></li>
+                            <li>Toe center alignment: O/S tip, Eyestay bottom, Lace Loop, Tongue endline</li>
+                            <li>No wrinkle on vamp area <em>(none allowed unless agreed)</em></li>
+                        </ol>
+                        <div class="tolerance-badge">Tolerance: ±2mm L/R</div>
+                    </div>
+                    <div class="defect-recorder">
+                        <h3>Record Defects</h3>
+                        <div class="defect-buttons">
+                            <button class="defect-btn" data-defect="alignment" data-step="vamp"><span class="defect-count">0</span><span class="defect-label">Alignment</span></button>
+                            <button class="defect-btn" data-defect="wrinkle" data-step="vamp"><span class="defect-count">0</span><span class="defect-label">Wrinkle</span></button>
+                            <button class="defect-btn" data-defect="spacing" data-step="vamp"><span class="defect-count">0</span><span class="defect-label">Spacing</span></button>
+                        </div>
+                    </div>
+                    <div class="step-actions">
+                        <button class="btn btn-secondary" onclick="prevStep()">← Back</button>
+                        <button class="btn btn-success" onclick="markPass()">Pass ✓</button>
+                        <button class="btn btn-primary" onclick="nextStep()">Next →</button>
+                    </div>
+                </section>
+
+                <!-- Heel Step -->
+                <section class="step-panel" id="step-heel">
+                    <div class="step-header">
+                        <div class="step-badge">Step 3 of 11</div>
+                        <h1>Heel Inspection</h1>
+                        <p class="step-desc">Place the shoes side by side and check the Heel</p>
+                    </div>
+                    <div class="instruction-card">
+                        <div class="instruction-header"><span class="instruction-icon">🔍</span><h3>Audit Points</h3></div>
+                        <ol class="audit-points">
+                            <li>Component spacing L&R: matched or within <strong>±2mm</strong></li>
+                            <li>Heel center alignment: Collar lining, Foxing, M/S, O/S aligned</li>
+                        </ol>
+                        <div class="tolerance-badge">Heel center must be aligned</div>
+                    </div>
+                    <div class="defect-recorder">
+                        <h3>Record Defects</h3>
+                        <div class="defect-buttons">
+                            <button class="defect-btn" data-defect="alignment" data-step="heel"><span class="defect-count">0</span><span class="defect-label">Alignment</span></button>
+                            <button class="defect-btn" data-defect="spacing" data-step="heel"><span class="defect-count">0</span><span class="defect-label">Spacing</span></button>
+                        </div>
+                    </div>
+                    <div class="step-actions">
+                        <button class="btn btn-secondary" onclick="prevStep()">← Back</button>
+                        <button class="btn btn-success" onclick="markPass()">Pass ✓</button>
+                        <button class="btn btn-primary" onclick="nextStep()">Next →</button>
+                    </div>
+                </section>
+
+                <!-- Heel to Heel Step -->
+                <section class="step-panel" id="step-heel-to-heel">
+                    <div class="step-header">
+                        <div class="step-badge">Step 4 of 11</div>
+                        <h1>Heel to Heel</h1>
+                        <p class="step-desc">Put the shoes heel to heel on the table</p>
+                    </div>
+                    <div class="instruction-card">
+                        <div class="instruction-header"><span class="instruction-icon">📏</span><h3>Audit Points</h3></div>
+                        <ol class="audit-points">
+                            <li>Height at top of heel: same or within <strong>±1mm</strong> for L&R</li>
+                        </ol>
+                        <div class="tolerance-badge">Tolerance: ±1mm L/R</div>
+                    </div>
+                    <div class="defect-recorder">
+                        <h3>Record Defects</h3>
+                        <div class="defect-buttons">
+                            <button class="defect-btn" data-defect="height" data-step="heel-to-heel"><span class="defect-count">0</span><span class="defect-label">Height Mismatch</span></button>
+                        </div>
+                    </div>
+                    <div class="step-actions">
+                        <button class="btn btn-secondary" onclick="prevStep()">← Back</button>
+                        <button class="btn btn-success" onclick="markPass()">Pass ✓</button>
+                        <button class="btn btn-primary" onclick="nextStep()">Next →</button>
+                    </div>
+                </section>
+
+                <!-- Toe to Toe Step -->
+                <section class="step-panel" id="step-toe-to-toe">
+                    <div class="step-header">
+                        <div class="step-badge">Step 5 of 11</div>
+                        <h1>Toe to Toe</h1>
+                        <p class="step-desc">Put the shoes toe to toe on the table</p>
+                    </div>
+                    <div class="instruction-card">
+                        <div class="instruction-header"><span class="instruction-icon">👣</span><h3>Audit Points</h3></div>
+                        <ol class="audit-points">
+                            <li>Height matched between L&R or within <strong>±1mm</strong></li>
+                            <li>Toe spring curvatures matched between L&R</li>
+                            <li>Tip length variance: shall not exceed <strong>±1mm</strong></li>
+                        </ol>
+                        <div class="tolerance-badge">Tolerance: ±1mm L/R</div>
+                    </div>
+                    <div class="defect-recorder">
+                        <h3>Record Defects</h3>
+                        <div class="defect-buttons">
+                            <button class="defect-btn" data-defect="height" data-step="toe-to-toe"><span class="defect-count">0</span><span class="defect-label">Height</span></button>
+                            <button class="defect-btn" data-defect="curvature" data-step="toe-to-toe"><span class="defect-count">0</span><span class="defect-label">Curvature</span></button>
+                            <button class="defect-btn" data-defect="tipLength" data-step="toe-to-toe"><span class="defect-count">0</span><span class="defect-label">Tip Length</span></button>
+                        </div>
+                    </div>
+                    <div class="step-actions">
+                        <button class="btn btn-secondary" onclick="prevStep()">← Back</button>
+                        <button class="btn btn-success" onclick="markPass()">Pass ✓</button>
+                        <button class="btn btn-primary" onclick="nextStep()">Next →</button>
+                    </div>
+                </section>
+
+                <!-- Medial Step -->
+                <section class="step-panel" id="step-medial">
+                    <div class="step-header">
+                        <div class="step-badge">Step 6 of 11</div>
+                        <h1>Medial Inspection</h1>
+                        <p class="step-desc">Lay the shoes one side to check medial sides</p>
+                    </div>
+                    <div class="instruction-card">
+                        <div class="instruction-header"><span class="instruction-icon">↔️</span><h3>Audit Points</h3></div>
+                        <ol class="audit-points">
+                            <li>Component spacing L&R: matched or within <strong>±2mm</strong></li>
+                        </ol>
+                        <div class="tolerance-badge">Tolerance: ±2mm L/R</div>
+                    </div>
+                    <div class="defect-recorder">
+                        <h3>Record Defects</h3>
+                        <div class="defect-buttons">
+                            <button class="defect-btn" data-defect="spacing" data-step="medial"><span class="defect-count">0</span><span class="defect-label">Spacing</span></button>
+                        </div>
+                    </div>
+                    <div class="step-actions">
+                        <button class="btn btn-secondary" onclick="prevStep()">← Back</button>
+                        <button class="btn btn-success" onclick="markPass()">Pass ✓</button>
+                        <button class="btn btn-primary" onclick="nextStep()">Next →</button>
+                    </div>
+                </section>
+
+                <!-- Bottom Step -->
+                <section class="step-panel" id="step-bottom">
+                    <div class="step-header">
+                        <div class="step-badge">Step 7 of 11</div>
+                        <h1>Bottom Inspection</h1>
+                        <p class="step-desc">Turn over the shoes and check the bottom</p>
+                    </div>
+                    <div class="instruction-card">
+                        <div class="instruction-header"><span class="instruction-icon">🔻</span><h3>Audit Points</h3></div>
+                        <ol class="audit-points">
+                            <li>No contamination, cement stain</li>
+                            <li>Color bleeding: shall not exceed <strong>1mm width × 3mm length</strong></li>
+                            <li>No gap between O/S & M/S (check bond gap with fingers)</li>
+                            <li>Length consistency L&R: difference shall not exceed <strong>2mm</strong></li>
+                        </ol>
+                        <div class="tolerance-badge">Bond gap: 0mm | Length: ±2mm</div>
+                    </div>
+                    <div class="defect-recorder">
+                        <h3>Record Defects</h3>
+                        <div class="defect-buttons">
+                            <button class="defect-btn" data-defect="contamination" data-step="bottom"><span class="defect-count">0</span><span class="defect-label">Contamination</span></button>
+                            <button class="defect-btn" data-defect="colorBleed" data-step="bottom"><span class="defect-count">0</span><span class="defect-label">Color Bleed</span></button>
+                            <button class="defect-btn" data-defect="bondGap" data-step="bottom"><span class="defect-count">0</span><span class="defect-label">Bond Gap</span></button>
+                            <button class="defect-btn" data-defect="lengthVar" data-step="bottom"><span class="defect-count">0</span><span class="defect-label">Length Variance</span></button>
+                        </div>
+                    </div>
+                    <div class="step-actions">
+                        <button class="btn btn-secondary" onclick="prevStep()">← Back</button>
+                        <button class="btn btn-success" onclick="markPass()">Pass ✓</button>
+                        <button class="btn btn-primary" onclick="nextStep()">Next →</button>
+                    </div>
+                </section>
+
+                <!-- Lateral Step -->
+                <section class="step-panel" id="step-lateral">
+                    <div class="step-header">
+                        <div class="step-badge">Step 8 of 11</div>
+                        <h1>Lateral Inspection</h1>
+                        <p class="step-desc">Highly noticeable area - lay shoes to check lateral sides</p>
+                    </div>
+                    <div class="instruction-card">
+                        <div class="instruction-header"><span class="instruction-icon">✓</span><h3>Audit Points</h3></div>
+                        <ol class="audit-points">
+                            <li>Component spacing L&R: matched or within <strong>±2mm</strong></li>
+                            <li>No wrinkle in quarter area</li>
+                            <li><strong>Swoosh Check:</strong>
+                                <ul>
+                                    <li>Swoosh should be straight from head to tail</li>
+                                    <li>Gap between swoosh & biteline on L&R must be exactly matched</li>
+                                </ul>
+                            </li>
+                        </ol>
+                    </div>
+                    <div class="defect-recorder">
+                        <h3>Record Defects</h3>
+                        <div class="defect-buttons">
+                            <button class="defect-btn" data-defect="spacing" data-step="lateral"><span class="defect-count">0</span><span class="defect-label">Spacing</span></button>
+                            <button class="defect-btn" data-defect="wrinkle" data-step="lateral"><span class="defect-count">0</span><span class="defect-label">Wrinkle</span></button>
+                            <button class="defect-btn" data-defect="swoosh" data-step="lateral"><span class="defect-count">0</span><span class="defect-label">Swoosh</span></button>
+                        </div>
+                    </div>
+                    <div class="step-actions">
+                        <button class="btn btn-secondary" onclick="prevStep()">← Back</button>
+                        <button class="btn btn-success" onclick="markPass()">Pass ✓</button>
+                        <button class="btn btn-primary" onclick="nextStep()">Next →</button>
+                    </div>
+                </section>
+
+                <!-- Biteline Step -->
+                <section class="step-panel" id="step-biteline">
+                    <div class="step-header">
+                        <div class="step-badge">Step 9 of 11</div>
+                        <h1>Biteline Inspection</h1>
+                        <p class="step-desc">Remove tissue/molded form, push along biteline with fingers</p>
+                    </div>
+                    <div class="instruction-card warning">
+                        <div class="instruction-header"><span class="instruction-icon">⚠️</span><h3>Critical Audit Points</h3></div>
+                        <ol class="audit-points">
+                            <li>Separation between M/S & Upper: <strong>NOT allowed</strong></li>
+                            <li>Separation between O/S & Upper: <strong>NOT allowed</strong></li>
+                            <li>High cement/buffing exceeding <strong>1mm</strong>: NOT allowed</li>
+                        </ol>
+                        <div class="tolerance-badge critical">Zero tolerance for separation</div>
+                    </div>
+                    <div class="defect-recorder">
+                        <h3>Record Defects</h3>
+                        <div class="defect-buttons">
+                            <button class="defect-btn critical" data-defect="separation" data-step="biteline"><span class="defect-count">0</span><span class="defect-label">Separation</span></button>
+                            <button class="defect-btn" data-defect="cement" data-step="biteline"><span class="defect-count">0</span><span class="defect-label">Cement/Buffing</span></button>
+                        </div>
+                    </div>
+                    <div class="step-actions">
+                        <button class="btn btn-secondary" onclick="prevStep()">← Back</button>
+                        <button class="btn btn-success" onclick="markPass()">Pass ✓</button>
+                        <button class="btn btn-primary" onclick="nextStep()">Next →</button>
+                    </div>
+                </section>
+
+                <!-- Shoelace Step -->
+                <section class="step-panel" id="step-shoelace">
+                    <div class="step-header">
+                        <div class="step-badge">Step 10 of 11</div>
+                        <h1>Shoelace Inspection</h1>
+                        <p class="step-desc">Unlace the shoes and grab the laces to check</p>
+                    </div>
+                    <div class="instruction-card">
+                        <div class="instruction-header"><span class="instruction-icon">🎀</span><h3>Audit Points</h3></div>
+                        <ol class="audit-points">
+                            <li>No staining/contamination/fraying of any kind</li>
+                            <li>Free end length of medial & lateral laces should match in both shoes<br><em>No need to untie & measure - visual check only</em></li>
+                            <li>Lace holes should be punctured clearly</li>
+                        </ol>
+                    </div>
+                    <div class="defect-recorder">
+                        <h3>Record Defects</h3>
+                        <div class="defect-buttons">
+                            <button class="defect-btn" data-defect="stain" data-step="shoelace"><span class="defect-count">0</span><span class="defect-label">Stain/Fray</span></button>
+                            <button class="defect-btn" data-defect="laceLength" data-step="shoelace"><span class="defect-count">0</span><span class="defect-label">Length Mismatch</span></button>
+                            <button class="defect-btn" data-defect="laceHole" data-step="shoelace"><span class="defect-count">0</span><span class="defect-label">Lace Hole</span></button>
+                        </div>
+                    </div>
+                    <div class="step-actions">
+                        <button class="btn btn-secondary" onclick="prevStep()">← Back</button>
+                        <button class="btn btn-success" onclick="markPass()">Pass ✓</button>
+                        <button class="btn btn-primary" onclick="nextStep()">Next →</button>
+                    </div>
+                </section>
+
+                <!-- Interior Step -->
+                <section class="step-panel" id="step-interior">
+                    <div class="step-header">
+                        <div class="step-badge">Step 11 of 11</div>
+                        <h1>Interior Inspection</h1>
+                        <p class="step-desc">Put hands inside and run them around the entire inside</p>
+                    </div>
+                    <div class="instruction-card">
+                        <div class="instruction-header"><span class="instruction-icon">🖐️</span><h3>Audit Points</h3></div>
+                        <ol class="audit-points">
+                            <li><strong>Sockliner:</strong>
+                                <ul>
+                                    <li>No wrinkle on sockliner</li>
+                                    <li>Position fitted to cover strobel sock</li>
+                                    <li>Logo: clear printing & surface condition</li>
+                                </ul>
+                            </li>
+                            <li>No rough edges or seams (entire inside)</li>
+                            <li>No wrinkle in the lining</li>
+                        </ol>
+                    </div>
+                    <div class="defect-recorder">
+                        <h3>Record Defects</h3>
+                        <div class="defect-buttons">
+                            <button class="defect-btn" data-defect="sockliner" data-step="interior"><span class="defect-count">0</span><span class="defect-label">Sockliner</span></button>
+                            <button class="defect-btn" data-defect="roughEdge" data-step="interior"><span class="defect-count">0</span><span class="defect-label">Rough Edge</span></button>
+                            <button class="defect-btn" data-defect="liningWrinkle" data-step="interior"><span class="defect-count">0</span><span class="defect-label">Lining Wrinkle</span></button>
+                        </div>
+                    </div>
+                    <div class="step-actions">
+                        <button class="btn btn-secondary" onclick="prevStep()">← Back</button>
+                        <button class="btn btn-success" onclick="markPass()">Pass ✓</button>
+                        <button class="btn btn-primary" onclick="nextStep()">Complete Audit →</button>
+                    </div>
+                </section>
+
+                <!-- Summary Step -->
+                <section class="step-panel" id="step-summary">
+                    <div class="step-header">
+                        <h1>Audit Summary</h1>
+                        <p class="step-desc">Review the audit results before submitting</p>
+                    </div>
+                    <div class="summary-grid">
+                        <div class="summary-card"><div class="summary-label">Audit Time</div><div class="summary-value" id="finalTime">--:--</div></div>
+                        <div class="summary-card"><div class="summary-label">Total Defects</div><div class="summary-value" id="totalDefects">0</div></div>
+                        <div class="summary-card"><div class="summary-label">Defect Rate</div><div class="summary-value" id="defectRate">0%</div></div>
+                        <div class="summary-card status-card" id="statusCard"><div class="summary-label">Status</div><div class="summary-value" id="auditStatus">PASS</div></div>
+                    </div>
+                    <div class="defect-breakdown">
+                        <h3>Defect Breakdown</h3>
+                        <div id="defectList" class="defect-list"></div>
+                    </div>
+                    <div class="notes-section">
+                        <h3>Additional Notes</h3>
+                        <textarea id="auditNotes" placeholder="Enter any additional observations..."></textarea>
+                    </div>
+                    <div class="step-actions">
+                        <button class="btn btn-secondary" onclick="prevStep()">← Back to Review</button>
+                        <button class="btn btn-primary" onclick="submitAudit()">Submit Audit</button>
+                        <button class="btn btn-secondary" onclick="startNewAudit()">New Audit</button>
+                    </div>
+                </section>
+            </div>
+        </main>
+
+        <div class="toast" id="toast">
+            <span class="toast-icon">⚠️</span>
+            <span class="toast-message">Remember: No repairing in HFPA area!</span>
+        </div>
+    </div>
+
+    <script>
+// HFPA Audit Application Logic
+const state = {
+    currentStep: 'setup',
+    steps: ['setup', 'overall', 'vamp', 'heel', 'heel-to-heel', 'toe-to-toe', 'medial', 'bottom', 'lateral', 'biteline', 'shoelace', 'interior', 'summary'],
+    auditStarted: false,
+    timerSeconds: 0,
+    timerInterval: null,
+    defects: {},
+    completedSteps: new Set(),
+    productionInfo: {}
+};
+
+document.addEventListener('DOMContentLoaded', () => {
+    initNavigation();
+    initDefectButtons();
+    initForm();
+    showToast();
+});
+
+function initNavigation() {
+    document.querySelectorAll('.nav-item').forEach(item => {
+        item.addEventListener('click', () => {
+            const step = item.dataset.step;
+            if (step === 'setup' || state.auditStarted) {
+                goToStep(step);
+            }
+        });
+    });
+}
+
+function goToStep(stepId) {
+    state.currentStep = stepId;
+    document.querySelectorAll('.step-panel').forEach(panel => panel.classList.remove('active'));
+    document.getElementById(`step-${stepId}`)?.classList.add('active');
+    document.querySelectorAll('.nav-item').forEach(item => {
+        item.classList.remove('active');
+        if (item.dataset.step === stepId) item.classList.add('active');
+    });
+    if (stepId === 'summary') updateSummary();
+}
+
+function nextStep() {
+    const currentIndex = state.steps.indexOf(state.currentStep);
+    if (currentIndex < state.steps.length - 1) {
+        markStepCompleted(state.currentStep);
+        goToStep(state.steps[currentIndex + 1]);
+    }
+}
+
+function prevStep() {
+    const currentIndex = state.steps.indexOf(state.currentStep);
+    if (currentIndex > 0) goToStep(state.steps[currentIndex - 1]);
+}
+
+function markStepCompleted(stepId) {
+    state.completedSteps.add(stepId);
+    const navItem = document.querySelector(`.nav-item[data-step="${stepId}"]`);
+    if (navItem) {
+        navItem.classList.add('completed');
+        const stepDefects = Object.entries(state.defects)
+            .filter(([key]) => key.includes(stepId))
+            .reduce((sum, [, val]) => sum + val, 0);
+        if (stepDefects > 0) {
+            navItem.classList.add('has-defects');
+            navItem.classList.remove('completed');
+        }
+    }
+}
+
+function markPass() {
+    markStepCompleted(state.currentStep);
+    nextStep();
+}
+
+function startTimer() {
+    if (state.timerInterval) return;
+    state.timerInterval = setInterval(() => {
+        state.timerSeconds++;
+        updateTimerDisplay();
+    }, 1000);
+}
+
+function stopTimer() {
+    if (state.timerInterval) {
+        clearInterval(state.timerInterval);
+        state.timerInterval = null;
+    }
+}
+
+function resetTimer() {
+    stopTimer();
+    state.timerSeconds = 0;
+    updateTimerDisplay();
+}
+
+function updateTimerDisplay() {
+    const minutes = Math.floor(state.timerSeconds / 60);
+    const seconds = state.timerSeconds % 60;
+    const display = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    const timerEl = document.getElementById('timer');
+    timerEl.querySelector('.timer-value').textContent = display;
+    timerEl.classList.remove('warning', 'danger');
+    if (state.timerSeconds > 90) timerEl.classList.add('danger');
+    else if (state.timerSeconds > 60) timerEl.classList.add('warning');
+}
+
+function initDefectButtons() {
+    document.querySelectorAll('.defect-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const defect = btn.dataset.defect;
+            const step = btn.dataset.step;
+            const key = `${step}-${defect}`;
+            state.defects[key] = (state.defects[key] || 0) + 1;
+            const countEl = btn.querySelector('.defect-count');
+            countEl.textContent = state.defects[key];
+            btn.classList.add('active');
+            btn.style.transform = 'scale(0.95)';
+            setTimeout(() => { btn.style.transform = ''; }, 100);
+            const navItem = document.querySelector(`.nav-item[data-step="${step}"]`);
+            if (navItem) navItem.classList.add('has-defects');
+        });
+        btn.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+            const defect = btn.dataset.defect;
+            const step = btn.dataset.step;
+            const key = `${step}-${defect}`;
+            if (state.defects[key] && state.defects[key] > 0) {
+                state.defects[key]--;
+                const countEl = btn.querySelector('.defect-count');
+                countEl.textContent = state.defects[key];
+                if (state.defects[key] === 0) btn.classList.remove('active');
+            }
+        });
+    });
+}
+
+function initForm() {
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('auditDate').value = today;
+    generateAuditId();
+    document.querySelectorAll('#step-setup input, #step-setup select').forEach(input => {
+        input.addEventListener('change', () => { state.productionInfo[input.id] = input.value; });
+    });
+}
+
+function generateAuditId() {
+    const date = new Date();
+    const year = date.getFullYear().toString().slice(-2);
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const day = date.getDate().toString().padStart(2, '0');
+    const random = Math.floor(Math.random() * 100).toString().padStart(2, '0');
+    const auditId = `${year}${month}${day}${random}`;
+    document.getElementById('auditId').value = auditId;
+    state.productionInfo.auditId = auditId;
+}
+
+function startAudit() {
+    const requiredFields = ['factoryCode', 'auditor', 'model'];
+    const missing = requiredFields.filter(field => !document.getElementById(field).value);
+    if (missing.length > 0) {
+        alert('Please fill in: ' + missing.join(', '));
+        return;
+    }
+    document.querySelectorAll('#step-setup input, #step-setup select').forEach(input => {
+        state.productionInfo[input.id] = input.value;
+    });
+    state.auditStarted = true;
+    resetTimer();
+    startTimer();
+    markStepCompleted('setup');
+    nextStep();
+}
+
+function updateSummary() {
+    stopTimer();
+    const totalDefects = Object.values(state.defects).reduce((sum, val) => sum + val, 0);
+    const sampleSize = parseInt(state.productionInfo.sampleSize) || 31;
+    const defectRate = ((totalDefects / sampleSize) * 100).toFixed(2);
+    document.getElementById('finalTime').textContent = document.querySelector('.timer-value').textContent;
+    document.getElementById('totalDefects').textContent = totalDefects;
+    document.getElementById('defectRate').textContent = `${defectRate}%`;
+    const statusCard = document.getElementById('statusCard');
+    const statusEl = document.getElementById('auditStatus');
+    if (defectRate > 6.5) {
+        statusCard.className = 'summary-card status-card fail';
+        statusEl.textContent = 'FAIL';
+    } else {
+        statusCard.className = 'summary-card status-card pass';
+        statusEl.textContent = 'PASS';
+    }
+    const defectList = document.getElementById('defectList');
+    const defectsWithValues = Object.entries(state.defects).filter(([, val]) => val > 0);
+    if (defectsWithValues.length === 0) {
+        defectList.innerHTML = '<div class="defect-list-empty">No defects recorded ✓</div>';
+    } else {
+        defectList.innerHTML = defectsWithValues.map(([key, val]) => {
+            const [step, type] = key.split('-');
+            const stepName = step.charAt(0).toUpperCase() + step.slice(1).replace(/-/g, ' ');
+            const typeName = type.charAt(0).toUpperCase() + type.slice(1);
+            return `<div class="defect-list-item"><span class="defect-name">${stepName} → ${typeName}</span><span class="defect-value">${val}</span></div>`;
+        }).join('');
+    }
+}
+
+function submitAudit() {
+    const auditData = {
+        productionInfo: state.productionInfo,
+        defects: state.defects,
+        totalDefects: Object.values(state.defects).reduce((sum, val) => sum + val, 0),
+        auditTime: state.timerSeconds,
+        notes: document.getElementById('auditNotes').value,
+        submittedAt: new Date().toISOString()
+    };
+    console.log('Audit Data:', auditData);
+    const audits = JSON.parse(localStorage.getItem('hfpa_audits') || '[]');
+    audits.push(auditData);
+    localStorage.setItem('hfpa_audits', JSON.stringify(audits));
+    alert('Audit submitted successfully!\n\nAudit ID: ' + state.productionInfo.auditId);
+}
+
+function startNewAudit() {
+    if (!confirm('Start a new audit? Current data will be cleared.')) return;
+    state.currentStep = 'setup';
+    state.auditStarted = false;
+    state.timerSeconds = 0;
+    state.defects = {};
+    state.completedSteps.clear();
+    state.productionInfo = {};
+    resetTimer();
+    document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('completed', 'has-defects'));
+    document.querySelectorAll('.defect-btn').forEach(btn => {
+        btn.classList.remove('active');
+        btn.querySelector('.defect-count').textContent = '0';
+    });
+    document.querySelectorAll('#step-setup input:not([type="date"]):not([readonly])').forEach(input => {
+        if (input.id !== 'sampleSize') input.value = '';
+    });
+    document.querySelectorAll('.check-item input').forEach(cb => { cb.checked = false; });
+    document.getElementById('auditNotes').value = '';
+    generateAuditId();
+    goToStep('setup');
+}
+
+function showToast() {
+    const toast = document.getElementById('toast');
+    setTimeout(() => {
+        toast.classList.add('show');
+        setTimeout(() => { toast.classList.remove('show'); }, 4000);
+    }, 1000);
+}
+
+document.addEventListener('keydown', (e) => {
+    if (!state.auditStarted) return;
+    if (e.key === 'ArrowRight' && !e.ctrlKey) nextStep();
+    else if (e.key === 'ArrowLeft' && !e.ctrlKey) prevStep();
+    if (e.key === ' ' && e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
+        e.preventDefault();
+        markPass();
+    }
+    if (e.key >= '1' && e.key <= '9') {
+        const index = parseInt(e.key) - 1;
+        const buttons = document.querySelectorAll(`#step-${state.currentStep} .defect-btn`);
+        if (buttons[index]) buttons[index].click();
+    }
+});
+    </script>
+</body>
+</html>
+
